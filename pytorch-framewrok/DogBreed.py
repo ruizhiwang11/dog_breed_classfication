@@ -15,7 +15,7 @@ class DogBreed(Dataset):
         super(DogBreed,self).__init__()
         self.root = root
         self.tranform = tranform
-        self.info_df = pd.read_csv('./labels.csv')
+        self.info_df = pd.read_csv('../scikit-learn-framewrok/labels.csv')
         self.images, self.labels, self.dog_breed_dic = self.load_train_csv("train.csv")
 
         if mode == "train":
