@@ -10,6 +10,9 @@ import torchvision
 from torchvision import transforms
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
+from torch import nn
+from torchvision.models import resnet18
+from transferLearningResNet18 import Flatten
 from CustomisedResnet18 import CustomizedResNet18
 from SimpleNN import  SimpleNN
 from DogBreed import DogBreed
@@ -54,18 +57,24 @@ test_dir = '../test'
 test_df = test_df[['id']]
 test_df.id = test_df.id.apply(lambda x: x+'.jpg')
 test_df.id = test_df.id.apply(lambda x: test_dir+'/'+x)
-test_set = TestDataset(test_df, transform=simpleNNtf)
+test_set = TestDataset(test_df, transform=resNettf)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
 # model = CustomizedResNet18(120).to(device)
-model = SimpleNN().to(device)
-model.load_state_dict(torch.load("simpleNN-best.mdl"))
+# model = SimpleNN().to(device)
+trained_model = resnet18(pretrained=True)
+model = nn.Sequential(
+    *list(trained_model.children())[0:-1],
+    Flatten(),
+    nn.Linear(512, 120)
+).to(device)
+model.load_state_dict(torch.load("resnet18-best.mdl"))
 predictions = torch.tensor([])
 for x in test_loader:
     if torch.cuda.is_available():
         x = x.to(device)
-        x = x.view(x.size(0), -1)
+        # x = x.view(x.size(0), -1)
         y_hat = model(x)
         predictions = torch.cat([predictions, y_hat.cpu()])
 train_db = DogBreed("../", 224, mode='train')
@@ -74,4 +83,4 @@ result_id = pd.read_csv('./sample_submission.csv').id.tolist()
 predictions_df = pd.DataFrame(predictions, index=result_id)
 predictions_df.columns = predictions_df.columns.map(train_db.dog_breed_dic)
 predictions_df.rename_axis('id', inplace=True)
-predictions_df.to_csv('submission.csv')
+predictions_df.to_csv('transer_resnet18_submission.csv')
