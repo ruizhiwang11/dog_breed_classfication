@@ -1,4 +1,5 @@
 from torchvision.models import resnet18
+from torchvision.models import resnet50
 import torch
 import os
 
@@ -26,9 +27,9 @@ transform = transforms.Compose([
                                  std=[0.229, 0.224, 0.225])
         ])
 
-batch_size = 32
+batch_size = 8
 lr = 1e-3
-epochs = 25
+epochs = 50
 
 device = torch.device('cuda:0')
 torch.manual_seed(1234)
@@ -58,11 +59,11 @@ def evaluate(model, loader):
 
 
 def main():
-    trained_model = resnet18(pretrained=True)
+    trained_model = resnet50(pretrained=True)
     model = nn.Sequential(
         *list(trained_model.children())[0:-1],
         Flatten(),
-        nn.Linear(512,120)
+        nn.Linear(2048,120),
     ).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     criteon = nn.CrossEntropyLoss()

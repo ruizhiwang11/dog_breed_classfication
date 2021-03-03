@@ -11,13 +11,13 @@ from torchvision import transforms
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 from torch import nn
-from torchvision.models import resnet18
+from torchvision.models import resnet18, resnet50
 from transferLearningResNet18 import Flatten
 from CustomisedResnet18 import CustomizedResNet18
 from SimpleNN import  SimpleNN
 from DogBreed import DogBreed
 
-batch_size = 4
+batch_size = 32
 device = torch.device('cuda')
 
 
@@ -63,11 +63,11 @@ test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 # model = CustomizedResNet18(120).to(device)
 # model = SimpleNN().to(device)
-trained_model = resnet18(pretrained=True)
+trained_model = resnet50(pretrained=True)
 model = nn.Sequential(
     *list(trained_model.children())[0:-1],
     Flatten(),
-    nn.Linear(512, 120)
+    nn.Linear(2048, 120)
 ).to(device)
 model.load_state_dict(torch.load("resnet18-best.mdl"))
 predictions = torch.tensor([])
@@ -75,8 +75,14 @@ for x in test_loader:
     if torch.cuda.is_available():
         x = x.to(device)
         # x = x.view(x.size(0), -1)
-        y_hat = model(x)
-        predictions = torch.cat([predictions, y_hat.cpu()])
+        print("lol")
+        with torch.no_grad():
+            y_hat = model(x)
+            y_hat_cpu = y_hat.cpu()
+            del x
+            del y_hat
+            predictions = torch.cat([predictions, y_hat_cpu])
+            torch.clear_autocast_cache()
 train_db = DogBreed("../", 224, mode='train')
 predictions = F.softmax(predictions,dim=1).detach().numpy()
 result_id = pd.read_csv('./sample_submission.csv').id.tolist()
