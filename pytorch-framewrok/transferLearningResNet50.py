@@ -16,6 +16,7 @@ class Flatten(nn.Module):
     def forward(self,x):
         shape = torch.prod(torch.tensor(x.shape[1:])).item()
         return x.view(-1, shape)
+
 transform = transforms.Compose([
             lambda x: PIL.Image.open(x).convert('RGB'),  # string path= > image data
             transforms.Resize((int(224 * 1.25), int(224 * 1.25))),
@@ -62,9 +63,9 @@ def main():
     model = nn.Sequential(
         *list(trained_model.children())[0:-1],
         Flatten(),
-        nn.Linear(2048,1024),
+        nn.Linear(2048, 1024),
         nn.Dropout(0.3),
-        nn.Linear(1024,120)
+        nn.Linear(1024, 120)
     ).to(device)
     optimizer = optim.SGD(model.parameters(), momentum=0.9, lr=lr)
     criteon = nn.CrossEntropyLoss()

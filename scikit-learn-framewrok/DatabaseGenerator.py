@@ -16,9 +16,7 @@ test_images_path = []
 labels = []
 breed_dic = {}
 
-
-images_per_class = 80
-fixed_size = tuple((224, 224))
+fixed_size = tuple((80, 80))
 
 def generator_train_npy():
     with open(os.path.join("./", "train.csv")) as f:

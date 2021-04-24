@@ -95,11 +95,9 @@ def main():
         nn.Linear(2048,1024),
         nn.ReLU(),
         nn.BatchNorm1d(1024),
-        nn.Dropout(0.8),
-        nn.Linear(1024,512),
+        nn.Dropout(0.3),
         nn.ReLU(),
-        nn.BatchNorm1d(512),
-        nn.Linear(512, 120),
+        nn.Linear(1024, 120),
         nn.LogSoftmax(dim=1)
     ).to(device)
     optimizer = optim.SGD(params=model_final.parameters(), momentum=0.9, lr=lr)

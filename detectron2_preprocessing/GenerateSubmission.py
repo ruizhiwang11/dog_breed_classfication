@@ -54,11 +54,9 @@ model = nn.Sequential(
         nn.Linear(2048,1024),
         nn.ReLU(),
         nn.BatchNorm1d(1024),
-        nn.Dropout(0.8),
-        nn.Linear(1024,512),
+        nn.Dropout(0.3),
         nn.ReLU(),
-        nn.BatchNorm1d(512),
-        nn.Linear(512, 120),
+        nn.Linear(1024, 120),
         nn.LogSoftmax(dim=1)
     ).to(device)
 model.load_state_dict(torch.load("resnet50-best-SGD-momentum.mdl"))
