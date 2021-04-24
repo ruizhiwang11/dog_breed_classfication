@@ -1,21 +1,14 @@
-import os
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import PIL
-from sklearn.preprocessing import LabelEncoder
 import torch
 import torch.nn.functional as F
-import torchvision
 from torchvision import transforms
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 from torch import nn
-from torchvision.models import resnet18, resnet50
-from transferLearningResNet18 import Flatten
-from CustomisedResnet18 import CustomizedResNet18
-from SimpleNN import  SimpleNN
-from DogBreed import DogBreed
+from torchvision.models import resnet50
+from transferLearningResNet50 import Flatten
+from DogBreedDatabase import DogBreed
 
 batch_size = 32
 device = torch.device('cuda')
@@ -36,20 +29,11 @@ class TestDataset(Dataset):
 resNettf = transforms.Compose([
     lambda x: PIL.Image.open(x).convert('RGB'),  # string path= > image data
     transforms.Resize((int(224 * 1.25), int(224 * 1.25))),
-    transforms.RandomRotation(15),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
 ])
-
-simpleNNtf = transform = transforms.Compose([
-            lambda x: PIL.Image.open(x).convert('L'),  # string path= > image data
-            transforms.Resize((int(128 * 1.25), int(128 * 1.25))),
-            transforms.RandomRotation(15),
-            transforms.CenterCrop(128),
-            transforms.ToTensor(),
-        ])
 
 
 test_df = pd.read_csv('./sample_submission.csv')
@@ -60,27 +44,23 @@ test_df.id = test_df.id.apply(lambda x: test_dir+'/'+x)
 test_set = TestDataset(test_df, transform=resNettf)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
-
-# model = CustomizedResNet18(120).to(device)
-# model = SimpleNN().to(device)
 trained_model = resnet50(pretrained=True)
 model = nn.Sequential(
     *list(trained_model.children())[0:-1],
     Flatten(),
-    nn.Linear(2048, 120)
+    nn.Linear(2048, 1024),
+    nn.Dropout(0.3),
+    nn.Linear(1024, 120)
 ).to(device)
-model.load_state_dict(torch.load("resnet18-best.mdl"))
+model.load_state_dict(torch.load("resnet50-best.mdl"))
+model.eval()
 predictions = torch.tensor([])
 for x in test_loader:
     if torch.cuda.is_available():
         x = x.to(device)
-        # x = x.view(x.size(0), -1)
-        print("lol")
         with torch.no_grad():
             y_hat = model(x)
             y_hat_cpu = y_hat.cpu()
-            del x
-            del y_hat
             predictions = torch.cat([predictions, y_hat_cpu])
             torch.clear_autocast_cache()
 train_db = DogBreed("../", 224, mode='train')
@@ -89,4 +69,4 @@ result_id = pd.read_csv('./sample_submission.csv').id.tolist()
 predictions_df = pd.DataFrame(predictions, index=result_id)
 predictions_df.columns = predictions_df.columns.map(train_db.dog_breed_dic)
 predictions_df.rename_axis('id', inplace=True)
-predictions_df.to_csv('transer_resnet18_submission.csv')
+predictions_df.to_csv('transer_resnet50_submission.csv')

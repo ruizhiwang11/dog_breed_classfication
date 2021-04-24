@@ -1,13 +1,11 @@
 import PIL
 import torch
-import os
 from torch import optim, nn
 import visdom
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 
-from DogBreed import DogBreed
-from CustomisedResnet18 import CustomizedResNet18
+from DogBreedDatabase import DogBreed
 from SimpleNN import  SimpleNN
 
 batch_size = 32
