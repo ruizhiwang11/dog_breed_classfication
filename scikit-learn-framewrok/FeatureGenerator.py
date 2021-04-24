@@ -1,5 +1,4 @@
 import cv2
-import mahotas
 
 class FeatureGenerator():
     def __init__(self):
@@ -10,16 +9,7 @@ class FeatureGenerator():
         feature = cv2.HuMoments(cv2.moments(image)).flatten()
         return feature
 
-    # feature-descriptor-2: Haralick Texture
-    def fd_haralick(self, image):
-        # convert the image to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # compute the haralick texture feature vector
-        haralick = mahotas.features.haralick(gray).mean(axis=0)
-        # return the result
-        return haralick
-
-    # feature-descriptor-3: Color Histogram
+    # feature-descriptor-2: Color Histogram
     def fd_histogram(self, image, mask=None):
         # convert the image to HSV color-space
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
